@@ -1,0 +1,16 @@
+node_modules/
+dist/
+*.log
+.env
+.env.local
+# Local OAuth artifacts (should NEVER be committed)
+.voicenotes-mcp/
+*.enc
+
+# ---- Personal data / private content — NEVER commit -----------------------
+# One-off import tooling and dumps of the author's own Voicenotes / Context Hub
+# notes. These hold private content (and some have notes inlined as JS literals),
+# so the entire directories are excluded — not just the data files.
+ch-import/
+scripts/
+voicenotes-about.txt
