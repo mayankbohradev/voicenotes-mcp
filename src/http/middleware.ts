@@ -17,15 +17,36 @@ export function originGuard(req: Request, res: Response, next: NextFunction): vo
     next();
     return;
   }
-  const allowed = ALLOWED_ORIGINS.some(
-    (a) => origin === a || origin.startsWith(a),
-  );
-  if (!allowed) {
+  // Compare parsed origins (scheme+host+port) for EXACT equality. Never use
+  // startsWith: a prefix match lets `http://localhost.evil.com` pass an
+  // `http://localhost` allowlist entry, defeating the rebinding guard and
+  // (via the reflected CORS header below) handing a hostile site access.
+  const reject = (): void => {
     res.status(403).json({
       jsonrpc: "2.0",
       error: { code: -32000, message: `Origin not allowed: ${origin}` },
       id: null,
     });
+  };
+  let originValue: string;
+  try {
+    originValue = new URL(origin).origin;
+  } catch {
+    // Unparseable Origin header — reject rather than risk a loose match.
+    reject();
+    return;
+  }
+  const allowedOrigins = new Set(
+    ALLOWED_ORIGINS.flatMap((a) => {
+      try {
+        return [new URL(a).origin];
+      } catch {
+        return [];
+      }
+    }),
+  );
+  if (!allowedOrigins.has(originValue)) {
+    reject();
     return;
   }
   // Echo back a tightly-scoped CORS allowance (never wildcard with credentials).

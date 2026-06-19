@@ -88,9 +88,13 @@ export const PUBLIC_URL =
  * validation on every Streamable HTTP request to prevent DNS-rebinding attacks.
  * Comma-separated list via MCP_ALLOWED_ORIGINS; defaults to Claude surfaces + local.
  */
+// Local-dev origins are port-accurate: a browser hitting the server on
+// HTTP_PORT sends `Origin: http://localhost:<port>`, and Origin matching is
+// now EXACT (scheme+host+port), so the port must be present in the allowlist.
+const LOCAL_PORT = HTTP_PORT ?? 3001;
 export const ALLOWED_ORIGINS = (
   process.env.MCP_ALLOWED_ORIGINS ??
-  "https://claude.ai,https://www.claude.ai,http://localhost,http://127.0.0.1"
+  `https://claude.ai,https://www.claude.ai,http://localhost:${LOCAL_PORT},http://127.0.0.1:${LOCAL_PORT}`
 )
   .split(",")
   .map((o) => o.trim())
